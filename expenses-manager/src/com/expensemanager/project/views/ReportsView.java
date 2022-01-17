@@ -3,6 +3,7 @@ package com.expensemanager.project.views;
 import com.expensemanager.project.classes.Expense;
 import com.expensemanager.project.helpers.Helper;
 import com.expensemanager.project.helpers.pdf.PdfCreator;
+import com.expensemanager.project.helpers.pdf.PdfDTO;
 import com.expensemanager.project.interfaces.IView;
 import com.expensemanager.project.interfaces.IViewModel;
 import com.expensemanager.project.interfaces.Report.IReportViewModel;
@@ -116,17 +117,28 @@ public class ReportsView extends JFrame implements IView {
 
         setComboBoxCurrencies();
         btnSaveAsPdf.addActionListener(e -> {
-            JButton b = (JButton) e.getSource();
-            int userSelection = fileChooser.showSaveDialog(b.getParent());
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
 
-            if (userSelection == JFileChooser.APPROVE_OPTION) {
-                File fileToSave = fileChooser.getSelectedFile();
-                String[][] strData = saveDataAssStrDoubleArr();
-                PdfCreator pdfCreator = new PdfCreator();
-                pdfCreator.createPdfFile(fileToSave.getPath(), strData);
+                    JButton b = (JButton) e.getSource();
+                    int userSelection = fileChooser.showSaveDialog(b.getParent());
 
-                SwingUtilities.invokeLater(() -> Helper.showMessage("Report", "Report Saved"));
-            }
+                    if (userSelection == JFileChooser.APPROVE_OPTION) {
+                        File fileToSave = fileChooser.getSelectedFile();
+                        String[][] strData = saveDataAssStrDoubleArr();
+                        PdfDTO pdfDTO = new PdfDTO();
+                        pdfDTO.setFrom(tfFromDate.getText());
+                        pdfDTO.setTo(tfToDate.getText());
+                        pdfDTO.setSum(Double.parseDouble(String.format("%.2f",Double.parseDouble(labelExpensesTotal.getText()))));
+                        PdfCreator pdfCreator = new PdfCreator();
+                        pdfCreator.createPdfFile(fileToSave.getPath(), strData,pdfDTO);
+
+                        Helper.showMessage("Report", "Report Saved");
+                    }
+
+                }
+            });
         });
 
         panelSouth.add(labelSumOfExpenses);
